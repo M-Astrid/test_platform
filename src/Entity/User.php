@@ -1,6 +1,8 @@
 <?php
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -17,9 +19,46 @@ class User extends BaseUser
      */
     protected $id;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\UserAnswer", mappedBy="user", orphanRemoval=true)
+     */
+    private $answers;
+
     public function __construct()
     {
         parent::__construct();
+        $this->answers = new ArrayCollection();
         // your own logic
+    }
+
+    /**
+     * @return Collection|UserAnswer[]
+     */
+    public function getAnswers(): Collection
+    {
+        return $this->answers;
+    }
+
+    public function addAnswer(UserAnswer $answer): self
+    {
+        if (!$this->answers->contains($answer)) {
+            $this->answers[] = $answer;
+            $answer->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAnswer(UserAnswer $answer): self
+    {
+        if ($this->answers->contains($answer)) {
+            $this->answers->removeElement($answer);
+            // set the owning side to null (unless already changed)
+            if ($answer->getUser() === $this) {
+                $answer->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }
