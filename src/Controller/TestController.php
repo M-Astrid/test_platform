@@ -2,7 +2,6 @@
 namespace App\Controller;
 
 use App\Entity\UserAnswer;
-//use App\Form\TestType;
 use App\Form\TestFormType;
 use App\Repository\TestRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,7 +32,10 @@ class TestController extends AbstractController
 
         $userAnswer = new UserAnswer();
 
+
         $form = $this->createForm(TestFormType::class, $userAnswer, ['questions' => $questions]);
+
+        dump($form);
 
         $form->handleRequest($request);
 
