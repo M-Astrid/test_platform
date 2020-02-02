@@ -1,8 +1,9 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\AnswerItem;
+use App\Entity\User;
 use App\Entity\UserAnswer;
-use App\Form\TestFormType;
 use App\Repository\TestRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,51 +31,49 @@ class TestController extends AbstractController
         $test = $repository->find($id);
         $questions = $test->getQuestions();
 
-        $userAnswer = new UserAnswer();
-
-
-        $form = $this->createForm(TestFormType::class, $userAnswer, ['questions' => $questions]);
-
-        dump($form);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid())
+        if ($request->getMethod() == 'POST')
         {
-            // todo check function, errors print
-            $data = $form->getData();
+            //todo validation
 
-            // ... . выполните действия, такие как сохранение задачи в базе данных
-            // например, если Task является сущностью Doctrine, сохраните его!
-            // $em = $this->getDoctrine()->getManager();
-            // $em->persist($task);
-            // $em->flush();
+            $entityManager = $this->getDoctrine()->getManager();
+            $answerItems = $this->getDoctrine()
+                ->getRepository(AnswerItem::class);
 
-            // todo if isset user
+            foreach ($questions as $question)
+            {
+                $userAnswer = new UserAnswer();
+                $userAnswer->setQuestion($question);
 
-            $this->redirectToRoute('completed', ['test' => $id]);
+                if ($question->getType()->getId() == 1)
+                {
+                    $answer = $answerItems->find($request->request->get($question->getId()));
+                    $userAnswer->addAnswer($answer);
+                }
+                elseif ($question->getType()->getId() == 2)
+                if ($question->getType()->getId() == 2)
+                {
+                    foreach ($request->request->get($question->getId()) as $id)
+                    {
+                        $answer = $answerItems->find($id);
+                        dump($answer);
+                        $userAnswer->addAnswer($answer);
+                    }
+                }
+                elseif ($question->getType()->getId() == 3)
+                {
+                    $answer = $request->request->get($question->getId());
+                    $userAnswer->setAnswerText($answer);
+                }
+                $entityManager->persist($userAnswer);
+                $entityManager->flush();
+            }
+
+            $this->redirectToRoute('completed', ['testId' => $id]);
         }
         return $this->render('test/show.html.twig', [
             'controller_name' => 'TestController',
             'test' => $test,
             'questions' => $questions,
-            'form' => $form->createView()
         ]);
     }
-
-    /**
-     * @Route("/result/{id}", methods={"GET"}, name="completed")
-     */
-    /*
-    public function passed($id, UserAnswerRepository $repository)
-    {
-// todo возможно перенести в другой контроллер
-        return $this->render('test/result.html.twig', [
-            'controller_name' => 'TestController',
-            'test' => $test,
-            'questions' => $questions,
-        ]);
-    }
-*/
-
 }

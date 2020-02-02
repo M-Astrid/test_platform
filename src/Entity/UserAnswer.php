@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -23,20 +25,24 @@ class UserAnswer
     private $question;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="answers")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $user;
+    private $answerText;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\AnswerItem", cascade={"persist", "remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\AnswerItem")
      */
     private $answer;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="userAnswers")
      */
-    private $answerText;
+    private $user;
+
+    public function __construct()
+    {
+        $this->answer = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -87,6 +93,24 @@ class UserAnswer
     public function setAnswerText(?string $answerText): self
     {
         $this->answerText = $answerText;
+
+        return $this;
+    }
+
+    public function addAnswer(AnswerItem $answer): self
+    {
+        if (!$this->answer->contains($answer)) {
+            $this->answer[] = $answer;
+        }
+
+        return $this;
+    }
+
+    public function removeAnswer(AnswerItem $answer): self
+    {
+        if ($this->answer->contains($answer)) {
+            $this->answer->removeElement($answer);
+        }
 
         return $this;
     }

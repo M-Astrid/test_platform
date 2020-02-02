@@ -24,10 +24,16 @@ class User extends BaseUser
      */
     private $answers;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\UserAnswer", mappedBy="user")
+     */
+    private $userAnswers;
+
     public function __construct()
     {
         parent::__construct();
         $this->answers = new ArrayCollection();
+        $this->userAnswers = new ArrayCollection();
         // your own logic
     }
 
@@ -56,6 +62,37 @@ class User extends BaseUser
             // set the owning side to null (unless already changed)
             if ($answer->getUser() === $this) {
                 $answer->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|UserAnswer[]
+     */
+    public function getUserAnswers(): Collection
+    {
+        return $this->userAnswers;
+    }
+
+    public function addUserAnswer(UserAnswer $userAnswer): self
+    {
+        if (!$this->userAnswers->contains($userAnswer)) {
+            $this->userAnswers[] = $userAnswer;
+            $userAnswer->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserAnswer(UserAnswer $userAnswer): self
+    {
+        if ($this->userAnswers->contains($userAnswer)) {
+            $this->userAnswers->removeElement($userAnswer);
+            // set the owning side to null (unless already changed)
+            if ($userAnswer->getUser() === $this) {
+                $userAnswer->setUser(null);
             }
         }
 
